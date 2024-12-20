@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VG_CAPTCHA</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f7f9fc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      width: 400px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .container h2 {
+      text-align: center;
+      margin-bottom: 20px; 
+    }
+    .section {
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .form-group input {
+      width: 95%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .form-group small {
+      color: red;
+      display: none;
+    }
+    .required-warning {
+      font-size: 12px;
+      color: red;
+      display: none;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #538ff7;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: none;
+      z-index: 1000;
+      width: 850px;
+      height: 700px;
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .popup .top-section {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      height: 170px;
+    }
+    .popup .top-section .instructions {
+      width: 40%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: left;
+      background-color: #007bff;
+      font-size: 16px;
+      font-weight: bold;
+      color: whitesmoke;
+    }
+    .popup .top-section .image-canvas {
+      width: 60%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: none;
+    }
+    .popup .middle-section {
+      flex: 3;
+      display: block;
+      justify-content: center;
+      margin-bottom: 10px;
+      padding: 5px;
+    }
+    .popup .middle-section .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      cursor: pointer;
+      gap: 10px; 
+      width: 100%; 
+    }
+    .popup .middle-section .grid-container canvas {
+      width: 100%;
+      height: 100%; 
+      border: 2px solid #ddd;
+      border-radius: 4px;
+    }
+    .popup .bottom-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 50px;
+    }
+    .popup .bottom-section .button-container {
+      margin-top: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+    .popup .bottom-section .button-container button {
+      width: 200px;
+      max-width: 300px;
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .popup .bottom-section .button-container button:hover {
+      background-color: #0056b3;
+    }
+    .checkmark {
+      margin-left: 10px;
+      font-size: 16px;
+    }
+    .checkmark.red {
+      color: red;
+    }
+    .checkmark.green {
+      color: green;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 999;
+    }
+    .login-container {
+      width: 400px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: none; /* 초기에는 숨겨짐 */
+    }
+    .login-container h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .login-container .form-group {
+      margin-bottom: 10px;
+    }
+    .login-container .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .login-container .form-group input {
+      width: 95%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .login-container button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background-color: #538ff7;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .login-container button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>회원가입</h2>
+    <div class="form-group">
+      <label for="name">이름</label>
+      <input type="text" id="name" placeholder="이름을 입력하세요">
+    </div>
+    <div class="form-group">
+      <label for="dob">생년월일</label>
+      <input type="date" id="dob">
+    </div>
+    <div class="form-group">
+      <label for="username">아이디</label>
+      <div style="display: flex; align-items: center;">
+        <input type="text" id="username" placeholder="아이디를 입력하세요" style="flex-grow: 1;">
+        <button id="check-username-btn" style="width: 30%; height: 35px; margin-left: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">중복 체크</button>
+      </div>
+    </div>    
+    <div class="form-group">
+      <label for="password">비밀번호</label>
+      <input type="password" id="password" placeholder="비밀번호를 입력하세요">
+      <small id="password-warning" style="font-size: 12px; color: #666;">6자리 이상 입력하세요!</small>
+    </div>
+    <div class="form-group">
+      <label for="confirm-password">비밀번호 확인</label>
+      <input type="password" id="confirm-password" placeholder="비밀번호 확인">
+      <span id="password-checkmark" class="checkmark"></span>
+    </div>
+    <div class="form-group">
+      <label for="E-mail">E-mail</label>
+      <input type="text" id="E-mail" placeholder="E-mail을 입력하세요">
+    </div>
+    <div style="margin-top: 10px;">
+      <input type="checkbox" id="privacy-consent">
+      <label for="privacy-consent">[필수] 개인정보 활용에 동의합니다.</label>
+    </div>
+    <button id="submit-btn">회원가입</button>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+
+  <div class="popup" id="captcha-popup">
+    <div class="top-section">
+      <div class="instructions">
+        <p>사람인가요?<br>오른쪽 이미지를 보고<br>아래에서 해당하는 이미지를 모두 고르세요</p>
+      </div>
+      <div class="image-canvas">
+        <canvas id="canvas-top"></canvas>
+      </div>
+    </div>
+
+    <div class="middle-section">
+      <div class="grid-container">
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas2"></canvas>
+        <canvas id="canvas3"></canvas>
+        <canvas id="canvas4"></canvas>
+        <canvas id="canvas5"></canvas>
+        <canvas id="canvas6"></canvas>
+        <canvas id="canvas7"></canvas>
+        <canvas id="canvas8"></canvas>
+        <canvas id="canvas9"></canvas>
+        <canvas id="canvas10"></canvas>
+        <canvas id="canvas11"></canvas>
+        <canvas id="canvas12"></canvas>
+      </div>
+    </div>
+
+    <div class="bottom-section">
+      <div class="button-container">
+        <button id="close-btn">사람입니다</button>
+      </div>
+    </div>
+
+    <!-- 로그인 폼 (회원가입 성공 후 보이게 될 화면) -->
+    <div class="login-container" id="login-container">
+      <h2>로그인</h2>
+      <div class="form-group">
+        <label for="login-username">아이디:</label>
+        <input type="text" id="login-username" placeholder="아이디를 입력하세요">
+      </div>
+      <div class="form-group">
+        <label for="login-password">비밀번호:</label>
+        <input type="password" id="login-password" placeholder="비밀번호를 입력하세요">
+      </div>
+      <button id="login-btn">로그인</button>
+    </div>
+  </div>
+
+  <script>
+    const submitBtn = document.getElementById('submit-btn');
+    const loginBtn = document.getElementById('login-btn');
+    const privacyConsent = document.getElementById('privacy-consent');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm-password');
+    const passwordCheckmark = document.getElementById('password-checkmark');
+    const passwordWarning = document.getElementById('password-warning');
+    const username = document.getElementById('username');
+    const checkUsernameBtn = document.getElementById('check-username-btn');
+    const formContainer = document.querySelector('.container');
+    const popup = document.getElementById('captcha-popup');
+    const overlay = document.getElementById('overlay');
+    const closeBtn = document.getElementById('close-btn');
+    const instructionText = document.querySelector('.instructions p');
+
+    // 버튼 초기 상태 비활성화
+    submitBtn.disabled = true;
+    loginBtn.disabled = true;
+    formContainer.style.display = 'block';
+    popup.style.display = 'none';
+    overlay.style.display = 'none';
+
+    confirmPassword.addEventListener('input', () => {
+      if (password.value !== confirmPassword.value) {
+        passwordCheckmark.textContent = '❌';
+        passwordCheckmark.classList.add('red');
+        passwordCheckmark.classList.remove('green');
+      } else {
+        passwordCheckmark.textContent = '✔️';
+        passwordCheckmark.classList.add('green');
+        passwordCheckmark.classList.remove('red');
+      }
+    });
+
+    // 비밀번호 길이 검증
+    password.addEventListener('input', () => {
+      if (password.value.length < 6) {
+        passwordWarning.style.color = 'red';
+        submitBtn.disabled = true;
+      } else {
+        passwordWarning.style.color = '#666';
+        submitBtn.disabled = false;
+      }
+    });
+
+    // 아이디 중복 체크 (임시 처리)
+    checkUsernameBtn.addEventListener('click', () => {
+      alert('중복 체크 완료!');
+    });
+
+    // 개인정보 활용 동의 체크 이벤트
+    privacyConsent.addEventListener('change', () => {
+      submitBtn.disabled = !privacyConsent.checked;
+    });
+
+    // submit 버튼 클릭 시 metadata, 이미지 로드
+    submitBtn.addEventListener('click', () => {
+      formContainer.style.display = 'none';
+      popup.style.display = 'flex';
+      overlay.style.display = 'block';
+      loadCaptchaImage();
+      loadSmallCanvasImages();
+      
+      fetch(`http://127.0.0.1:5000/generate_captcha_metadata`)
+        .then(response => response.json())
+        .then(parseMetadata)
+        .catch(console.error);
+      });
+
+    let selectedImages = []; // 선택 이미지 파일
+    let correctAnswers = []; // 정답 이미지 파일
+    let allImagePaths = []; // 모든 이미지 파일
+
+    // 상단 이미지 로드
+    function loadCaptchaImage() {
+      const img = new Image();
+      img.src = `http://127.0.0.1:5000/generated_captcha.png?${new Date().getTime()}`;
+      img.onload = () => {
+        const canvasTop = document.getElementById('canvas-top');
+        const canvasHeight = canvasTop.clientHeight;
+        const canvasWidth = canvasTop.clientWidth; 
+
+        canvasTop.width = canvasWidth;
+        canvasTop.height = canvasHeight;
+
+        const ctxTop = canvasTop.getContext('2d');
+        ctxTop.clearRect(0, 0, canvasTop.width, canvasTop.height);
+        ctxTop.drawImage(img, 0, 0, canvasTop.width, canvasTop.height);
+      };
+      img.onerror = () => console.error('Failed to load captcha image.');
+    }
+
+    function loadSmallCanvasImages() {
+    selectedImages = [];
+    correctAnswers = [];
+    allImagePaths = [];
+
+    // 서버에서 생성된 파일 목록을 요청
+    fetch('http://127.0.0.1:5000/get_captcha_files')
+        .then(response => response.json())
+        .then(files => {
+            // 받은 파일 목록을 순차적으로 이미지 로드
+            files.forEach(fileName => {
+                const i = fileName.match(/\d+/)[0]; // 이미지 번호 추출
+                const status = fileName.includes('correct') ? 'correct' : 'fake';
+                const imgSrc = `http://127.0.0.1:5000/answer_captcha_${i}_${status}.png?${new Date().getTime()}`;
+                
+                const img = new Image();
+                img.src = imgSrc;
+
+                img.onload = () => {
+                    const canvasBot = document.getElementById(`canvas${i}`);
+                    const canvasHeight = canvasBot.clientHeight;
+                    const canvasWidth = canvasBot.clientWidth;
+
+                    canvasBot.width = canvasWidth; // 적절한 크기로 조정
+                    canvasBot.height = canvasHeight; // 적절한 크기로 조정
+
+                    const ctxBot = canvasBot.getContext('2d');
+                    ctxBot.clearRect(0, 0, canvasBot.width, canvasBot.height);
+                    ctxBot.drawImage(img, 0, 0, canvasBot.width, canvasBot.height);
+                    
+                    allImagePaths.push(img.src);
+                    if (img.src.includes('_correct.png')) {
+                        correctAnswers.push(`answer_captcha_${i}_correct.png`);
+                    }
+
+                    canvasBot.onclick = () => {
+                        if (selectedImages.includes(img.src)) {
+                            selectedImages = selectedImages.filter(src => src !== img.src);
+                            canvasBot.style.border = '';
+                        } else {
+                            selectedImages.push(img.src);
+                            canvasBot.style.border = '5px solid red';
+                        }
+                    };
+                };
+
+                img.onerror = () => console.error(`Failed to load image ${imgSrc}`);
+            });
+        })
+        .catch(error => console.error('Error loading files:', error));
+      }
+
+    // 서버로부터 전달받은 metadata를 파싱하여 selected_method_global 값을 가져옵니다.
+    function parseMetadata(metadata) {
+      const method = metadata['method'];
+      if (method === 'Diffusion') {
+        instructionText.innerText = '사람인가요?\n오른쪽 이미지에서\n보이는 물체를 모두 고르시오';
+      } else {
+        instructionText.innerText = '사람인가요?\n오른쪽 이미지를 보고\n일치하는 이미지를 모두 고르시오';
+      }
+    }
+
+    function resetForm() {
+        // 모든 입력 필드 초기화
+        document.getElementById('name').value = '';
+        document.getElementById('dob').value = '';
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('confirm-password').value = '';
+        document.getElementById('E-mail').value = '';
+        document.getElementById('privacy-consent').checked = false;
+    }
+
+    function resetSelections() {
+      selectedImages = [];
+    }
+    
+    closeBtn.addEventListener('click', async () => {
+      function getFileNameFromUrl(url) {
+        const urlWithoutParams = url.split('?')[0];  // 쿼리 파라미터 제거
+        return urlWithoutParams.split('/').pop();   // 마지막 부분이 파일 이름
+      }
+
+      const userData = {
+        name: document.getElementById('name').value,
+        dob: document.getElementById('dob').value,
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value,
+        email: document.getElementById('E-mail').value,
+        selected_images: selectedImages.map(img => getFileNameFromUrl(img)), // 이미지 이름만 추출
+      };
+      
+      const isCorrect = selectedImages.every(imageSrc => {
+        // 선택된 이미지 경로에서 파일 이름만 추출하여 비교
+        const imageName = imageSrc.split('/').pop(); // URL에서 파일 이름 추출
+        return correctAnswers.includes(imageName);
+      }) && selectedImages.length === correctAnswers.length;
+      
+      try {
+        const response = await fetch('http://127.0.0.1:5000/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData),
+        });
+        const result = await response.json();
+        // console.log(result);
+        
+        if (result.success) {
+            alert('가입을 축하드립니다!');
+            resetForm();
+            resetSelections();
+            loadCaptchaImage();
+            loadSmallCanvasImages();
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+            formContainer.style.display = 'block';
+        } else {
+            alert('사람이 아닙니다!');
+            privacyConsent.checked = false;
+            resetForm();
+            resetSelections();
+            loadCaptchaImage();
+            loadSmallCanvasImages();
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+            formContainer.style.display = 'block';
+        } 
+      } catch (error) {
+          alert(result.message);
+          console.error('Error:', error);
+          privacyConsent.checked = false;
+          resetSelections();
+          loadCaptchaImage();
+          loadSmallCanvasImages();
+          popup.style.display = 'none';
+          overlay.style.display = 'none';
+          formContainer.style.display = 'block';
+        }
+      });
+  </script>
+</body>
+</html>
